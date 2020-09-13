@@ -59,7 +59,7 @@ you need to provide the MONGODB_INITIAL_PRIMARY_HOST env var"
                 print_validation_error "$error_message"
             fi
         elif [[ "$MONGODB_REPLICA_SET_MODE" = "primary" ]]; then
-            if { [[ -n "$MONGODB_ROOT_PASSWORD" ]] && [[ -z "$MONGODB_REPLICA_SET_KEY" ]] ;} || \
+	    if { [[ -n "$MONGODB_ROOT_PASSWORD" ]] && [[ -z "$MONGODB_REPLICA_SET_KEY" ]] ;} || \
                { [[ -z "$MONGODB_ROOT_PASSWORD" ]] && [[ -n "$MONGODB_REPLICA_SET_KEY" ]] ;}; then
                 print_validation_error "$replicaset_error_message"
             fi
@@ -435,6 +435,7 @@ mongodb_set_auth_conf() {
                 # TODO: replace 'sed' calls with 'yq' once 'yq write' does not remove comments
                 mongodb_config_apply_regex "#?authorization:.*" "authorization: enabled" "$conf_file_path"
                 mongodb_config_apply_regex "#?enableLocalhostAuthBypass:.*" "enableLocalhostAuthBypass: false" "$conf_file_path"
+		cat /opt/bitnami/mongodb/conf/mongodb.conf
             fi
         fi
     else
@@ -512,9 +513,11 @@ EOF
 #   None
 #########################
 mongodb_set_keyfile_conf() {
+    echo $MONGODB_CONF_FILE
+
     local -r conf_file_path="${1:-$MONGODB_CONF_FILE}"
     local -r conf_file_name="${conf_file_path#"$MONGODB_CONF_DIR"}"
-
+    echo ${conf_file_path#"$MONGODB_CONF_DIR"}
     if ! mongodb_is_file_external "$conf_file_name"; then
         mongodb_config_apply_regex "#?keyFile:.*" "keyFile: $MONGODB_KEY_FILE" "$conf_file_path"
     else
@@ -532,8 +535,9 @@ mongodb_set_keyfile_conf() {
 #   None
 #########################
 mongodb_create_keyfile() {
+    echo "$MONGODB_KEY_FILE"
     local -r key="${1:?key is required}"
-
+    echo "$MONGODB_KEY_FILE"
     if ! mongodb_is_file_external "keyfile"; then
         info "Writing keyfile for replica set authentication..."
         echo "$key" > "$MONGODB_KEY_FILE"

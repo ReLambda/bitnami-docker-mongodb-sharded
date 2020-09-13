@@ -25,8 +25,8 @@ net:
 sharding:
   configDB: 127.0.0.1
 
-#security:
-   #keyFile: {{MONGODB_KEY_FILE}}
+security:
+  keyFile: {{MONGODB_KEY_FILE}}
 
 # process management options
 processManagement:
@@ -35,4 +35,4 @@ processManagement:
 
 # set parameter options
 setParameter:
-   enableLocalhostAuthBypass: true
+   enableLocalhostAuthBypass: false
