@@ -24,8 +24,7 @@
 mongodb_sharded_shard_currently_in_cluster() {
     local -r replicaset="${1:?node is required}"
     local result
-    result=$(mongodb_execute "$MONGODB_MONGOS_HOST" "$MONGODB_MONGOS_PORT_NUMBER" <<EOF
-
+    result=$(mongodb_execute "$MONGODB_PRIMARY_ROOT_USER" "$MONGODB_PRIMARY_ROOT_PASSWORD" "admin" "$MONGODB_MONGOS_HOST" "$MONGODB_MONGOS_PORT_NUMBER" <<EOF
 db.adminCommand({ listShards: 1 })
 EOF
 )
@@ -210,8 +209,10 @@ mongodb_sharded_is_join_shard_pending() {
     local -r shard_connection_string="${1:?shard connection string is required}"
     local -r mongos_host="${2:?node is required}"
     local -r mongos_port="${3:?port is required}"
+    local -r user="${4:-}"
+    local -r password="${5:-}"
     local result
-    result=$(mongodb_execute "$mongos_host" "$mongos_port" <<EOF
+    result=$(mongodb_execute "$user" "$password" "admin" "$mongos_host" "$mongos_port" <<EOF
 sh.addShard("$shard_connection_string")
 EOF
 )
