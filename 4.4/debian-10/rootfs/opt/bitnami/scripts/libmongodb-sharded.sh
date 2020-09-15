@@ -64,17 +64,21 @@ mongodb_sharded_mongod_initialize() {
         fi
         mongodb_start_bg
         mongodb_create_users
-        #mongodb_create_keyfile "$MONGODB_REPLICA_SET_KEY"
-        #mongodb_set_keyfile_conf
-        #mongodb_set_auth_conf
+        if [[ -z "$MONGODB_REPLICA_SET_KEY" ]] && ! is_boolean_yes "$ALLOW_EMPTY_PASSWORD"; then
+            mongodb_create_keyfile "$MONGODB_REPLICA_SET_KEY"
+            mongodb_set_keyfile_conf
+            mongodb_set_auth_conf
+        fi
         mongodb_set_listen_all_conf
         mongodb_sharded_configure_replica_set
         mongodb_stop
     else
         persisted=true
-        #mongodb_create_keyfile "$MONGODB_REPLICA_SET_KEY"
-        #mongodb_set_keyfile_conf
-        #mongodb_set_auth_conf
+	if [[ -z "$MONGODB_REPLICA_SET_KEY" ]] && ! is_boolean_yes "$ALLOW_EMPTY_PASSWORD"; then
+            mongodb_create_keyfile "$MONGODB_REPLICA_SET_KEY"
+            mongodb_set_keyfile_conf
+            mongodb_set_auth_conf
+        fi
         info "Deploying MongoDB Sharded with persisted data..."
         if [[ "$MONGODB_REPLICA_SET_MODE" = "dynamic" ]]; then
             mongodb_ensure_dynamic_mode_consistency
@@ -117,11 +121,12 @@ mongodb_sharded_validate() {
     if [[ -z "$MONGODB_SHARDING_MODE" ]]; then
         print_validation_error "You need to speficy one of the sharding modes: mongos, shardsvr or configsvr"
     fi
-#    if [[ "$MONGODB_SHARDING_MODE" = "mongos" ]] || { [[ "$MONGODB_SHARDING_MODE" = "shardsvr" ]] && [[ "$MONGODB_REPLICA_SET_MODE" = "primary" ]] ;}; then
-#        if [[ -z "$MONGODB_ROOT_PASSWORD" ]]; then
-#          print_validation_error "Missing root password for the Config Server. Set MONGODB_ROOT_PASSWORD"
-#        fi
-#    fi
+
+    if [[ "$MONGODB_SHARDING_MODE" = "mongos" ]] || { [[ "$MONGODB_SHARDING_MODE" = "shardsvr" ]] && [[ "$MONGODB_REPLICA_SET_MODE" = "primary" ]] ;}; then
+         if [[ -z "$MONGODB_ROOT_PASSWORD" ]] && ! is_boolean_yes "$ALLOW_EMPTY_PASSWORD"; then; 
+          print_validation_error "Missing root password for the Config Server. Set MONGODB_ROOT_PASSWORD"
+        fi
+    fi
 
     if [[ "$MONGODB_SHARDING_MODE" =~ (shardsvr|configsvr) ]]; then
         if [[ -z "$MONGODB_REPLICA_SET_MODE" ]]; then
@@ -136,9 +141,9 @@ mongodb_sharded_validate() {
         if [[ -z "$MONGODB_CFG_REPLICA_SET_NAME" ]]; then
           print_validation_error "Missing replica set name  for the Config Server. Set MONGODB_CFG_REPLICA_SET_NAME"
         fi
- #       if [[ -z "$MONGODB_REPLICA_SET_KEY" ]]; then
-  #        print_validation_error "Missing replica set key for the Config Server. Set MONGODB_REPLICA_SET_KEY"
-  #      fi
+        if [[ -z "$MONGODB_REPLICA_SET_KEY" ]] && ! is_boolean_yes "$ALLOW_EMPTY_PASSWORD"; then
+          print_validation_error "Missing replica set key for the Config Server. Set MONGODB_REPLICA_SET_KEY"
+        fi
     fi
 
     if [[ "$MONGODB_SHARDING_MODE" = "shardsvr" ]] && [[ "$MONGODB_REPLICA_SET_MODE" = "primary" ]]; then
@@ -209,8 +214,13 @@ mongodb_sharded_is_join_shard_pending() {
     local -r shard_connection_string="${1:?shard connection string is required}"
     local -r mongos_host="${2:?node is required}"
     local -r mongos_port="${3:?port is required}"
-    local -r user="${4:-}"
-    local -r password="${5:-}"
+    if [[ -z "$MONGODB_ROOT_PASSWORD" ]] && ! is_boolean_yes "$ALLOW_EMPTY_PASSWORD"; then
+       local -r user="${4:?user is required}"	
+       local -r password="${5:?password is required}"
+    else 
+       local -r user="${4:-}"
+       local -r password="${5:-}"
+    fi
     local result
     result=$(mongodb_execute "$user" "$password" "admin" "$mongos_host" "$mongos_port" <<EOF
 sh.addShard("$shard_connection_string")
@@ -345,8 +355,10 @@ mongodb_sharded_mongos_initialize() {
     rm -f "$MONGODB_PID_FILE"
     mongodb_copy_mounted_config
     mongodb_sharded_mongos_conf_compatibility
-   # mongodb_create_keyfile "$MONGODB_REPLICA_SET_KEY"
-   # mongodb_set_keyfile_conf "$MONGODB_MONGOS_CONF_FILE"
+    if [[ -z "$MONGODB_REPLICA_SET_KEY" ]] && ! is_boolean_yes "$ALLOW_EMPTY_PASSWORD"; then
+       mongodb_create_keyfile "$MONGODB_REPLICA_SET_KEY"
+       mongodb_set_keyfile_conf "$MONGODB_MONGOS_CONF_FILE"
+    fi
     mongodb_set_net_conf "$MONGODB_MONGOS_CONF_FILE"
     mongodb_set_log_conf "$MONGODB_MONGOS_CONF_FILE"
     mongodb_sharded_set_cfg_server_host_conf "$MONGODB_MONGOS_CONF_FILE"
