@@ -123,7 +123,7 @@ mongodb_sharded_validate() {
     fi
 
     if [[ "$MONGODB_SHARDING_MODE" = "mongos" ]] || { [[ "$MONGODB_SHARDING_MODE" = "shardsvr" ]] && [[ "$MONGODB_REPLICA_SET_MODE" = "primary" ]] ;}; then
-         if [[ -z "$MONGODB_ROOT_PASSWORD" ]] && ! is_boolean_yes "$ALLOW_EMPTY_PASSWORD"; then; 
+         if [[ -z "$MONGODB_ROOT_PASSWORD" ]] && ! is_boolean_yes "$ALLOW_EMPTY_PASSWORD"; then 
           print_validation_error "Missing root password for the Config Server. Set MONGODB_ROOT_PASSWORD"
         fi
     fi
@@ -357,7 +357,8 @@ mongodb_sharded_mongos_initialize() {
     mongodb_sharded_mongos_conf_compatibility
     if [[ -z "$MONGODB_REPLICA_SET_KEY" ]] && ! is_boolean_yes "$ALLOW_EMPTY_PASSWORD"; then
        mongodb_create_keyfile "$MONGODB_REPLICA_SET_KEY"
-       mongodb_set_keyfile_conf "$MONGODB_MONGOS_CONF_FILE"
+       mongos_set_keyfile_conf "$MONGODB_MONGOS_CONF_FILE"
+       mongos_set_auth_conf  "$MONGODB_MONGOS_CONF_FILE"
     fi
     mongodb_set_net_conf "$MONGODB_MONGOS_CONF_FILE"
     mongodb_set_log_conf "$MONGODB_MONGOS_CONF_FILE"

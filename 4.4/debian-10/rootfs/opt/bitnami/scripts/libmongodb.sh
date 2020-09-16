@@ -441,7 +441,26 @@ mongodb_set_auth_conf() {
         debug "$conf_file_name mounted. Skipping authorization enabling"
     fi
 }
+mongos_set_auth_conf() {
+    local -r conf_file_path="${1:-$MONGODB_CONF_FILE}"
+    local -r conf_file_name="${conf_file_path#"$MONGODB_CONF_DIR"}"
 
+    local authorization
+
+    if ! mongodb_is_file_external "$conf_file_name"; then
+        if [[ -n "$MONGODB_ROOT_PASSWORD" ]] || [[ -n "$MONGODB_PASSWORD" ]]; then
+            authorization="$(yq read "$MONGODB_CONF_FILE" security.authorization)"
+            if [[ "$authorization" = "disabled" ]]; then
+
+                info "Enabling authentication..."
+                # TODO: replace 'sed' calls with 'yq' once 'yq write' does not remove comments
+                mongodb_config_apply_regex "#?enableLocalhostAuthBypass:.*" "enableLocalhostAuthBypass: false" "$conf_file_path"
+            fi
+        fi
+    else
+        debug "$conf_file_name mounted. Skipping authorization enabling"
+    fi
+}
 ########################
 # Enable ReplicaSetMode
 # Globals:
@@ -520,6 +539,18 @@ mongodb_set_keyfile_conf() {
         debug "$conf_file_name mounted. Skipping keyfile location configuration"
     fi
 }
+
+mongos_set_keyfile_conf() {
+    local -r conf_file_path="${1:-$MONGODB_CONF_FILE}"
+    local -r conf_file_name="${conf_file_path#"$MONGODB_CONF_DIR"}"
+    if ! mongodb_is_file_external "$conf_file_name"; then
+        mongodb_config_apply_regex "#?keyFile:.*" "keyFile: $MONGODB_KEY_FILE" "$conf_file_path"
+        mongodb_config_apply_regex "#?security:.*" "security" "$conf_file_path"
+    else
+        debug "$conf_file_name mounted. Skipping keyfile location configuration"
+    fi
+}
+
 
 ########################
 # Create the replica set key file
