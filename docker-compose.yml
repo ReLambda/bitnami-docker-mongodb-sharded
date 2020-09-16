@@ -8,7 +8,8 @@ services:
       - MONGODB_SHARDING_MODE=mongos
       - MONGODB_CFG_PRIMARY_HOST=mongodb-cfg
       - MONGODB_CFG_REPLICA_SET_NAME=cfgreplicaset
-      - ALLOW_EMPTY_PASSWORD=yes
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+      - MONGODB_ROOT_PASSWORD=password123
     ports:
       - "27017:27017"
 
@@ -18,9 +19,10 @@ services:
       - MONGODB_ADVERTISED_HOSTNAME=mongodb-shard0
       - MONGODB_SHARDING_MODE=shardsvr
       - MONGODB_MONGOS_HOST=mongodb-sharded
+      - MONGODB_ROOT_PASSWORD=password123
       - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
       - MONGODB_REPLICA_SET_NAME=shard0
-      - ALLOW_EMPTY_PASSWORD=yes
     volumes:
       - 'shard0_data:/bitnami'
 
@@ -29,9 +31,10 @@ services:
     environment:
       - MONGODB_ADVERTISED_HOSTNAME=mongodb-cfg
       - MONGODB_SHARDING_MODE=configsvr
+      - MONGODB_ROOT_PASSWORD=password123
       - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
       - MONGODB_REPLICA_SET_NAME=cfgreplicaset
-      - ALLOW_EMPTY_PASSWORD=yes
     volumes:
       - 'cfg_data:/bitnami'
 

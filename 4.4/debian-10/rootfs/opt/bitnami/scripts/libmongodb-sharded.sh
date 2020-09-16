@@ -64,7 +64,7 @@ mongodb_sharded_mongod_initialize() {
         fi
         mongodb_start_bg
         mongodb_create_users
-        if [[ -z "$MONGODB_REPLICA_SET_KEY" ]] && ! is_boolean_yes "$ALLOW_EMPTY_PASSWORD"; then
+        if [[ -n "$MONGODB_REPLICA_SET_KEY" ]] && ! is_boolean_yes "$ALLOW_EMPTY_PASSWORD"; then
             mongodb_create_keyfile "$MONGODB_REPLICA_SET_KEY"
             mongodb_set_keyfile_conf
             mongodb_set_auth_conf
@@ -74,7 +74,7 @@ mongodb_sharded_mongod_initialize() {
         mongodb_stop
     else
         persisted=true
-	if [[ -z "$MONGODB_REPLICA_SET_KEY" ]] && ! is_boolean_yes "$ALLOW_EMPTY_PASSWORD"; then
+	if [[ -n "$MONGODB_REPLICA_SET_KEY" ]] && ! is_boolean_yes "$ALLOW_EMPTY_PASSWORD"; then
             mongodb_create_keyfile "$MONGODB_REPLICA_SET_KEY"
             mongodb_set_keyfile_conf
             mongodb_set_auth_conf
@@ -214,7 +214,7 @@ mongodb_sharded_is_join_shard_pending() {
     local -r shard_connection_string="${1:?shard connection string is required}"
     local -r mongos_host="${2:?node is required}"
     local -r mongos_port="${3:?port is required}"
-    if [[ -z "$MONGODB_ROOT_PASSWORD" ]] && ! is_boolean_yes "$ALLOW_EMPTY_PASSWORD"; then
+    if [[ -n "$MONGODB_ROOT_PASSWORD" ]] && ! is_boolean_yes "$ALLOW_EMPTY_PASSWORD"; then
        local -r user="${4:?user is required}"	
        local -r password="${5:?password is required}"
     else 
@@ -355,7 +355,7 @@ mongodb_sharded_mongos_initialize() {
     rm -f "$MONGODB_PID_FILE"
     mongodb_copy_mounted_config
     mongodb_sharded_mongos_conf_compatibility
-    if [[ -z "$MONGODB_REPLICA_SET_KEY" ]] && ! is_boolean_yes "$ALLOW_EMPTY_PASSWORD"; then
+    if [[ -n "$MONGODB_REPLICA_SET_KEY" ]] && ! is_boolean_yes "$ALLOW_EMPTY_PASSWORD"; then
        mongodb_create_keyfile "$MONGODB_REPLICA_SET_KEY"
        mongos_set_keyfile_conf "$MONGODB_MONGOS_CONF_FILE"
        mongos_set_auth_conf  "$MONGODB_MONGOS_CONF_FILE"
