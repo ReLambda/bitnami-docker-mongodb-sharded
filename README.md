@@ -9,6 +9,7 @@ All MongoDB versions released after October 16, 2018 (3.6.9 or later, 4.0.4 or l
 # TL;DR
 
 ```console
+$ docker build -t bitnami/mongodb-sharded:latest 4.4/debian-10
 $ docker run --name mongodb bitnami/mongodb-sharded:latest
 ```
 
